@@ -1,10 +1,15 @@
 import random
 import os
 import shutil
+
+import numpy as np
 from keras.preprocessing.image import ImageDataGenerator
 from matplotlib import pyplot as plt
-
+from PIL import Image
 from config import SRC_FOLDER, FILE_TO_REMOVE_CATS, FILE_TO_REMOVE_DOGS, TRAIN_SIZE
+import cv2
+import glob
+
 
 
 class Drive:
@@ -89,9 +94,9 @@ class Drive:
     @staticmethod
     def get_images_augmentation(class_obj):
         images = []
-        images_path = 'dataset/PetImages/Dog/'
+        images_path = 'dataset/PetImages/test/Dog/'
         if class_obj == 'cat':
-            images_path = 'dataset/PetImages/Cat/'
+            images_path = 'dataset/PetImages/test/Cat/'
 
         img_generator = ImageDataGenerator(rotation_range=30,
                                             width_shift_range=0.2,
@@ -113,6 +118,119 @@ class Drive:
             for img in augment_images:
                 images.append(img.astype('uint8'))
 
+
         return images
+
+    @staticmethod
+    def list_dir_fileNames(dir):
+        names = os.listdir(dir)
+
+        for name in names:
+            print(names)
+
+    @staticmethod
+    def resize_images():
+        train_original_folder_path_cat = SRC_FOLDER + '/train/Cat/'
+        train_resized_folder_path_cat = SRC_FOLDER + '/train/Cat_Resized/'
+        train_original_folder_path_dog = SRC_FOLDER + '/train/Dog/'
+        train_resized_folder_path_dog = SRC_FOLDER + '/train/Dog_Resized/'
+        train_items_count_cat = len(os.listdir(SRC_FOLDER + 'train/Cat'))
+        train_items_count_dog = len(os.listdir(SRC_FOLDER + 'train/Dog'))
+        Drive.create_resizied_folder(train_original_folder_path_cat, train_resized_folder_path_cat, train_items_count_cat)
+        Drive.create_resizied_folder(train_original_folder_path_dog, train_resized_folder_path_dog, train_items_count_dog)
+
+        test_original_folder_path_cat = SRC_FOLDER + '/test/Cat/'
+        test_resized_folder_path_cat = SRC_FOLDER + '/test/Cat_Resized/'
+        test_original_folder_path_dog = SRC_FOLDER + '/test/Dog/'
+        test_resized_folder_path_dog = SRC_FOLDER + '/test/Dog_Resized/'
+        test_items_count_cat = len(os.listdir(SRC_FOLDER + 'test/Cat'))
+        test_items_count_dog = len(os.listdir(SRC_FOLDER + 'test/Dog'))
+        Drive.create_resizied_folder(test_original_folder_path_cat, test_resized_folder_path_cat,
+                                     test_items_count_cat)
+        Drive.create_resizied_folder(test_original_folder_path_dog, test_resized_folder_path_dog,
+                                     test_items_count_dog)
+
+        # if not os.path.isdir(resized_folder_path_cat):
+        #     os.mkdir(resized_folder_path_cat)
+        #     original_folder_cat = os.listdir(original_folder_path_cat)
+        #     for i in range(2000):
+        #         file_name_cat = original_folder_cat[i]
+        #         img_path_cat = original_folder_path_cat + file_name_cat
+        #         img_cat = Image.open(img_path_cat)
+        #         img_cat = img_cat.resize((224, 224))
+        #         img_cat = img_cat.convert('RGB')
+        #
+        #         new_img_path_cat = resized_folder_path_cat + file_name_cat
+        #         img_cat.save(new_img_path_cat)
+
+    @staticmethod
+    def create_resizied_folder(original_folder_path, resized_folder_path, items_count):
+        if not os.path.isdir(resized_folder_path):
+            os.mkdir(resized_folder_path)
+            original_folder_cat = os.listdir(original_folder_path)
+
+            for i in range(items_count):
+                file_name_cat = original_folder_cat[i]
+                img_path_cat = original_folder_path + file_name_cat
+                img_cat = Image.open(img_path_cat)
+                img_cat = img_cat.resize((224, 224))
+                img_cat = img_cat.convert('RGB')
+
+                new_img_path_cat = resized_folder_path + file_name_cat
+                img_cat.save(new_img_path_cat)
+
+    @staticmethod
+    def train_test_split():
+        files_cat_train = []
+        files_dog_train = []
+        train_resized_folder_path_cat = SRC_FOLDER + 'train/Cat_Resized/'
+        train_resized_folder_path_dog = SRC_FOLDER + 'train/Dog_Resized/'
+
+        files_cat_train.extend(glob.glob(train_resized_folder_path_cat + '*.jpg'))
+        files_dog_train.extend(glob.glob(train_resized_folder_path_dog + '*.jpg'))
+        train_cat_images_as_np_array = np.asarray([cv2.imread(file) for file in files_cat_train])
+        train_dog_images_as_np_array = np.asarray([cv2.imread(file) for file in files_dog_train])
+        # print(cat_images_as_np_array.shape)
+        train_cat_images_labels = [{'label': 0, 'src': file} for file in train_cat_images_as_np_array]
+        train_dog_images_labels = [{'label': 1, 'src': file} for file in train_dog_images_as_np_array]
+
+        train_data_labels_and_src = train_cat_images_labels + train_dog_images_labels
+        np.random.shuffle(train_data_labels_and_src)
+
+        y_train = [item['label'] for item in train_data_labels_and_src]
+        x_train = [item['src'] for item in train_data_labels_and_src]
+
+        files_cat_test = []
+        files_dog_test = []
+        test_resized_folder_path_cat = SRC_FOLDER + 'test/Cat_Resized/'
+        test_resized_folder_path_dog = SRC_FOLDER + 'test/Dog_Resized/'
+
+        files_cat_test.extend(glob.glob(test_resized_folder_path_cat + '*.jpg'))
+        files_dog_test.extend(glob.glob(test_resized_folder_path_dog + '*.jpg'))
+        test_cat_images_as_np_array = np.asarray([cv2.imread(file) for file in files_cat_test])
+        test_dog_images_as_np_array = np.asarray([cv2.imread(file) for file in files_dog_test])
+
+        test_cat_images_labels = [{'label': 0, 'src': file} for file in test_cat_images_as_np_array]
+        test_dog_images_labels = [{'label': 1, 'src': file} for file in test_dog_images_as_np_array]
+
+        test_data_labels_and_src = test_cat_images_labels + test_dog_images_labels
+        np.random.shuffle(test_data_labels_and_src)
+
+        y_test = [item['label'] for item in test_data_labels_and_src]
+        x_test = [item['src'] for item in test_data_labels_and_src]
+
+        return [np.asarray(x_train), np.asarray(x_test), np.asarray(y_train), np.asarray(y_test)]
+
+
+
+
+
+
+
+
+
+
+
+
 
 

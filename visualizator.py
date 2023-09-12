@@ -1,4 +1,5 @@
 from matplotlib import pyplot as plt
+import matplotlib.image as mpimg
 import os
 import random
 
@@ -17,9 +18,9 @@ def plot_augment_images(images):
 
 
 def plot_random_images(object_class):
-    images_path = 'dataset/PetImages/Dog/'
+    images_path = 'dataset/PetImages/train/Dog/'
     if object_class == 'cat':
-        images_path = 'dataset/PetImages/Cat/'
+        images_path = 'dataset/PetImages/train/Cat/'
 
     _, _, images = next(os.walk(images_path))
     # prepare 3 x 3 plot total 9 images
@@ -36,4 +37,9 @@ def plot_random_images(object_class):
         ax[row, col].axis('off')
         ax[row, col].set_title('Image: ' + img)
 
+    plt.show()
+
+def plot_image(img_path):
+    img = mpimg.imread(img_path)
+    img_plot = plt.imshow(img)
     plt.show()
