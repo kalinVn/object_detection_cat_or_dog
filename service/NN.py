@@ -52,7 +52,7 @@ class NN:
         # use pretrained model
         x_train, x_test, y_train, y_test = Drive.train_test_split()
 
-        # x_train_scaled, x_test_scaled = self.preprocess.scale_pixels(x_train, x_test)
+        x_train_scaled, x_test_scaled = self.preprocess.scale_pixels(x_train, x_test)
 
         self.model = self.model_factory.get_keras_model('mobile_net_v2')
         print(os.path.exists('store/models/model_SaveModel_format_test'))
@@ -60,10 +60,10 @@ class NN:
         if (os.path.exists('store/models/model_SaveModel_format_test')):
             self.model = tf.keras.models.load_model("store/models/model_SaveModel_format_test");
         else:
-            self.model.fit(x_train, y_train, epochs=5, verbose=1)
+            self.model.fit(x_train_scaled, y_train, epochs=5, verbose=1)
             self.model.save('store/models/model_SaveModel_format_test')
 
-        score, acc = self.model.evaluate(x_test, y_test)
+        score, acc = self.model.evaluate(x_test_scaled, y_test)
         print('Test Loss = ', score)
         print('Test Accuracy = ', acc)
 
@@ -83,7 +83,7 @@ class NN:
         print(prediction)
         input_predict_label = np.argmax(prediction)
 
-        if input_predict_label == 1:
+        if input_predict_label == 0:
             print("The image represent a Cat")
         else:
             print("The image represent a Dog")

@@ -1,5 +1,4 @@
-from service import NN, Drive, PreprocessResNet50
-from service.PreprocessResNet50 import PreprocessResNet50
+from service import NN, Drive
 from visualizator import plot_random_images, plot_augment_images, plot_image
 from config import SRC_FOLDER
 
@@ -20,7 +19,7 @@ nn = NN()
 
 nn.fit()
 # nn.score()
-input_image_path = 'test_cat_1.jpg'
+input_image_path = 'test_dog_1.jpg'
 
 nn.predict(input_image_path)
 

@@ -219,7 +219,7 @@ class Drive:
         y_test = [item['label'] for item in test_data_labels_and_src]
         x_test = [item['src'] for item in test_data_labels_and_src]
 
-        return [np.asarray(x_train), np.asarray(x_test), np.asarray(y_train), np.asarray(y_test)]
+        return [np.asarray(x_train[0:2000]), np.asarray(x_test[0:300]), np.asarray(y_train[0:2000]), np.asarray(y_test[0:300])]
 
 
 
